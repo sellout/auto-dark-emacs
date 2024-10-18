@@ -37,6 +37,8 @@ in
 
     doCheck = true;
 
+    GITHUB_ACTION = true;
+
     checkPhase = ''
       runHook preCheck
 

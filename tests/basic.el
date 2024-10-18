@@ -11,6 +11,13 @@
 (defvar auto-dark-tests--original-state auto-dark-mode)
 (defvar auto-dark-tests--original-enabled-themes custom-enabled-themes)
 
+(message "Buttercup version: %s"
+         (package-desc-full-name (cadr (assq 'buttercup package-alist))))
+(message "GITHUB_ACTION: %s" (getenv "GITHUB_ACTION"))
+(message "NO_COLOR: %s" (getenv "NO_COLOR"))
+(message "TERM: %s" (getenv "TERM"))
+(message "buttercup-color: %s" buttercup-color)
+
 (custom-set-variables
  ;; TODO: This is not a valid value, but it stops Auto-Dark from trying to set
  ;;       the detection method. See #73.
