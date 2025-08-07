@@ -54,19 +54,14 @@ in {
         emacs.pkgs.eldev
       ];
 
-      postPatch = lib.setUpLocalDependencies emacsWithPackages.deps;
-
       buildPhase = ''
         runHook preBuild
 
-        ## Need `--external` here so that we don’t try to download any
-        ## package archives (which would break the sandbox).
+        ## Need `--disable-dependencies` here so that we don’t try to download
+        ## any package archives (which would break the sandbox).
         ## NB: `EMACS*LOADPATH` is needed by `elisp-lint`.
-        ## TODO: Currently need `HOME` to make a temp file in
-        ##      `eldev--create-internal-pseudoarchive-descriptor`.
         EMACSLOADPATH= EMACSNATIVELOADPATH= \
-          HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)" \
-          eldev --external lint --required
+          eldev --disable-dependencies lint --required
 
         runHook postBuild
       '';

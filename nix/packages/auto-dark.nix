@@ -33,8 +33,6 @@ in
       emacs.pkgs.eldev
     ];
 
-    postPatch = lib.setUpLocalDependencies emacsWithPackages.deps;
-
     doCheck = true;
 
     checkPhase = ''
@@ -44,9 +42,9 @@ in
       ##      `eldev--create-internal-pseudoarchive-descriptor`.
       HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
 
-      ## Need `--external` here so that we don’t try to download any
+      ## Need `--disable-dependencies` here so that we don’t try to download any
       ## package archives (which would break the sandbox).
-      eldev --external test --test-type=main
+      eldev --disable-dependencies test --test-type=main
 
       runHook postCheck
     '';
@@ -64,17 +62,13 @@ in
       else
         for file in "''${init_tests[@]}"; do
           echo "testing $file"
-          eldev --external test --test-type=integration -f "$file"
+          eldev --disable-dependencies test --test-type=integration -f "$file"
         done
       fi
 
-      ## TODO: Currently needed to make a temp file in
-      ##      `eldev--create-internal-pseudoarchive-descriptor`.
-      HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
-
-      ## Need `--external` here so that we don’t try to download any
+      ## Need `--disable-dependencies` here so that we don’t try to download any
       ## package archives (which would break the sandbox).
-      eldev --external --packaged test --test-type=main
+      eldev --disable-dependencies --packaged test --test-type=main
 
       runHook postInstallCheck
     '';
