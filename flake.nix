@@ -14,7 +14,6 @@
   };
 
   outputs = {
-    bash-strict-mode,
     flake-utils,
     flaky,
     nixpkgs,
@@ -52,7 +51,7 @@
     }
     // flake-utils.lib.eachSystem supportedSystems (system: let
       pkgs = nixpkgs.legacyPackages.${system}.appendOverlays [
-        flaky.overlays.dependencies
+        flaky.overlays.default
         flaky.overlays.elisp-dependencies
       ];
 
@@ -63,8 +62,7 @@
           default = self.packages.${system}.auto-dark;
           auto-dark = pkgs.callPackage ./nix/packages/auto-dark.nix {
             inherit src;
-            inherit (pkgs) emacsPackages;
-            checkedDrv = bash-strict-mode.lib.checkedDrv pkgs;
+            inherit (pkgs) checkedDrv emacs;
           };
         }
         // nixpkgs.lib.listToAttrs (nixpkgs.lib.concatMap (v:
@@ -74,22 +72,22 @@
               name = "${v}_auto-dark";
               value = pkgs.callPackage ./nix/packages/auto-dark.nix {
                 inherit src;
-                checkedDrv = bash-strict-mode.lib.checkedDrv pkgs;
-                emacsPackages = pkgs.emacsPackagesFor pkgs.${v};
+                inherit (pkgs) checkedDrv;
+                emacs = pkgs.${v};
               };
             }
           ]
           else []) [
           ## Emacs 28 doesn’t like setting up frames in batch mode, so only test
           ## on Emacs 29 for now.
-          "emacs29"
-          "emacs29-gtk3"
           "emacs29-macport"
-          "emacs29-nox"
-          "emacs29-pgtk"
+          "emacs30"
+          "emacs30-gtk3"
+          "emacs30-nox"
+          "emacs30-pgtk"
         ]);
 
-      devShells.default = bash-strict-mode.lib.checkedDrv pkgs (pkgs.mkShell {
+      devShells.default = pkgs.checkedDrv (pkgs.mkShell {
         inherit (pkgs) system;
         inputsFrom =
           builtins.attrValues self.checks.${system}
@@ -98,8 +96,7 @@
 
       checks = import ./nix/checks.nix {
         inherit src;
-        inherit (pkgs) emacsPackages emacsWithPackages stdenv;
-        checkedDrv = bash-strict-mode.lib.checkedDrv pkgs;
+        inherit (pkgs) checkedDrv emacs stdenv;
       };
 
       formatter = pkgs.alejandra;
@@ -109,7 +106,6 @@
     ## Flaky should generally be the source of truth for its inputs.
     flaky.url = "github:sellout/flaky";
 
-    bash-strict-mode.follows = "flaky/bash-strict-mode";
     flake-utils.follows = "flaky/flake-utils";
     nixpkgs.follows = "flaky/nixpkgs";
     systems.follows = "flaky/systems";

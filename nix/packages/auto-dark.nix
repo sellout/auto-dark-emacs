@@ -1,9 +1,9 @@
 {
   checkedDrv,
-  emacsPackages,
+  emacs,
   src,
 }: let
-  lib = import ../lib.nix {inherit emacsPackages;};
+  lib = import ../lib.nix {inherit emacs;};
 
   ## Read version in format: ;; Version: x.y(.z)?
   readVersion = fp:
@@ -13,13 +13,13 @@
       (builtins.readFile fp))
     1;
 
-  emacsWithPackages = emacsPackages.emacsWithPackages (epkgs: [
+  emacsWithPackages = emacs.pkgs.withPackages (epkgs: [
     epkgs.buttercup
     epkgs.elisp-lint
     epkgs.use-package # TODO: Conditionalize on Emacs <29?
   ]);
 in
-  checkedDrv (emacsPackages.trivialBuild {
+  checkedDrv (emacs.pkgs.trivialBuild {
     inherit src;
     inherit (lib) ELDEV_LOCAL;
 
@@ -30,7 +30,7 @@ in
     nativeBuildInputs = [
       emacsWithPackages
       # Emacs-lisp build tool, https://doublep.github.io/eldev/
-      emacsPackages.eldev
+      emacs.pkgs.eldev
     ];
 
     postPatch = lib.setUpLocalDependencies emacsWithPackages.deps;

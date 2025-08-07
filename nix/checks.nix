@@ -1,11 +1,10 @@
 {
   checkedDrv,
-  emacsPackages,
-  emacsWithPackages,
+  emacs,
   src,
   stdenv,
 }: let
-  lib = import ./lib.nix {inherit emacsPackages;};
+  lib = import ./lib.nix {inherit emacs;};
 in {
   doctor = checkedDrv (stdenv.mkDerivation {
     inherit src;
@@ -14,9 +13,9 @@ in {
     name = "eldev doctor";
 
     nativeBuildInputs = [
-      (emacsWithPackages (e: [e.elisp-lint]))
+      (emacs.pkgs.withPackages (e: [e.elisp-lint]))
       # Emacs-lisp build tool, https://doublep.github.io/eldev/
-      emacsPackages.eldev
+      emacs.pkgs.eldev
     ];
 
     buildPhase = ''
@@ -25,8 +24,8 @@ in {
       ##      `eldev--create-internal-pseudoarchive-descriptor`.
       HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)"
       mkdir -p "$HOME/.cache/eldev"
-      ## NB: `EMACSNATIVELOADPATH` is needed by `elisp-lin
-      EMACSNATIVELOADPATH= eldev doctor
+      ## NB: `EMACS*LOADPATH` is needed by `elisp-lint`.
+      EMACSLOADPATH= EMACSNATIVELOADPATH= eldev doctor
       runHook postBuild
     '';
 
@@ -38,7 +37,7 @@ in {
   });
 
   lint = let
-    emacs = emacsWithPackages (e: [
+    emacsWithPackages = emacs.pkgs.withPackages (e: [
       e.elisp-lint
       e.package-lint
       e.relint
@@ -51,21 +50,21 @@ in {
       name = "eldev lint";
 
       nativeBuildInputs = [
-        emacs
-        emacsPackages.eldev
+        emacsWithPackages
+        emacs.pkgs.eldev
       ];
 
-      postPatch = lib.setUpLocalDependencies emacs.deps;
+      postPatch = lib.setUpLocalDependencies emacsWithPackages.deps;
 
       buildPhase = ''
         runHook preBuild
 
         ## Need `--external` here so that we don’t try to download any
         ## package archives (which would break the sandbox).
-        ## NB: `EMACSNATIVELOADPATH` is needed by `elisp-lint`.
+        ## NB: `EMACS*LOADPATH` is needed by `elisp-lint`.
         ## TODO: Currently need `HOME` to make a temp file in
         ##      `eldev--create-internal-pseudoarchive-descriptor`.
-        EMACSNATIVELOADPATH= \
+        EMACSLOADPATH= EMACSNATIVELOADPATH= \
           HOME="$(mktemp --directory --tmpdir fake-home.XXXXXX)" \
           eldev --external lint --required
 

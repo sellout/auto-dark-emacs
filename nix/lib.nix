@@ -1,8 +1,8 @@
-{emacsPackages}: let
+{emacs}: let
   emacsPath = package: "${package}/share/emacs/site-lisp/elpa/${package.pname}-${package.version}";
 in {
   ## We need to tell Eldev where to find its Emacs package.
-  ELDEV_LOCAL = emacsPath emacsPackages.eldev;
+  ELDEV_LOCAL = emacsPath emacs.pkgs.eldev;
 
   ## Ideally this could just
   ##     (setq eldev-external-package-dir "${deps}/share/emacs/site-lisp/elpa")
